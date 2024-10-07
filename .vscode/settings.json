@@ -4,8 +4,12 @@
   "solidity.compileUsingRemoteVersion": "v0.8.25",
   "editor.formatOnSave": true,
   "[solidity]": {
-    "editor.defaultFormatter": "JuanBlanco.solidity"
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "solidity.formatter": "forge",
-  "search.exclude": { "lib": true }
+  "search.exclude": {
+    "lib": true
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "notebook.defaultFormatter": "esbenp.prettier-vscode"
 }

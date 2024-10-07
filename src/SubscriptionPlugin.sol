@@ -12,14 +12,15 @@ import {
     IPlugin
 } from "modular-account-libs/interfaces/IPlugin.sol";
 
-/// @title Counter Plugin
-/// @author Your name
-/// @notice This plugin lets increment a count!
-contract CounterPlugin is BasePlugin {
+/// @title Subscription Plugin
+/// @author Azan Adnan
+/// @notice This plugin lets subscribe to a subscription. eg. Netflix per Month subs
+
+contract SubscriptionPlugin is BasePlugin {
     // metadata used by the pluginMetadata() method down below
-    string public constant NAME = "Counter Plugin";
+    string public constant NAME = "Subscription Plugin";
     string public constant VERSION = "1.0.0";
-    string public constant AUTHOR = "Your name";
+    string public constant AUTHOR = "Azan Adnan";
 
     // this is a constant used in the manifest, to reference our only dependency: the single owner plugin
     // since it is the first, and only, plugin the index 0 will reference the single owner plugin
@@ -37,24 +38,35 @@ contract CounterPlugin is BasePlugin {
     * In this case, "count" is only used in an execution function, but nonetheless, it's worth noting
     * that a mapping from the account address is considered associated storage.
     */
-    mapping(address => uint256) public count;
+    mapping(address => mapping(address => SubscriptionData)) public subscriptions;
+
+    struct SubscriptionData {
+        uint256 amount; // <= Native Currency
+        uint256 lastPaid;
+        bool enabled;
+    }
 
     // ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
     // ┃    Execution functions    ┃
     // ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-    // Three ways to call:
-    // 1. usrop( bundler -> entry point -> sca -> plugins)
-    // 2. runtime (sca -? plugin)
-    // 3.. plugin directly
+
 
     // this is the one thing we are attempting to do with our plugin!
     // we define increment to modify our associated storage, count
     // then in the manifest we define it as an execution function,
     // and we specify the validation function for the user op targeting this function
-    function increment() external {
-        count[msg.sender]++;
-    }
+ 
+    // Three ways to call:
+    // 1. usrop( bundler -> entry point -> sca -> plugins)
+    // 2. runtime (sca -? plugin)
+    // 3.. plugin directly
+ 
+    // This is called through user op:
+    function subscribe( address service, uint amount ) external {
+            
+        subscriptions[service][msg.sender]= SubscriptionData(amount,0,true);
+      }
 
     // ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
     // ┃    Plugin interface functions    ┃
@@ -79,7 +91,7 @@ contract CounterPlugin is BasePlugin {
         // we only have one execution function that can be called, which is the increment function
         // here we define that increment function on the manifest as something that can be called during execution
         manifest.executionFunctions = new bytes4[](1);
-        manifest.executionFunctions[0] = this.increment.selector;
+        manifest.executionFunctions[0] = this.subscribe.selector;
 
         // you can think of ManifestFunction as a reference to a function somewhere,
         // we want to say "use this function" for some purpose - in this case,
@@ -96,7 +108,7 @@ contract CounterPlugin is BasePlugin {
         // this will ensure that only an owner of the account can call increment
         manifest.userOpValidationFunctions = new ManifestAssociatedFunction[](1);
         manifest.userOpValidationFunctions[0] = ManifestAssociatedFunction({
-            executionSelector: this.increment.selector,
+            executionSelector: this.subscribe.selector,
             associatedFunction: ownerUserOpValidationFunction
         });
 
@@ -105,13 +117,18 @@ contract CounterPlugin is BasePlugin {
         // a runtime validation function for it and unauthorized calls may occur due to that
         manifest.preRuntimeValidationHooks = new ManifestAssociatedFunction[](1);
         manifest.preRuntimeValidationHooks[0] = ManifestAssociatedFunction({
-            executionSelector: this.increment.selector,
+            executionSelector: this.subscribe.selector,
             associatedFunction: ManifestFunction({
                 functionType: ManifestAssociatedFunctionType.PRE_HOOK_ALWAYS_DENY,
                 functionId: 0,
                 dependencyIndex: 0
             })
         });
+
+        // Plugin -> smart Account -> external Address ( By default this is not set)
+            manifest.permitAnyExternalAddress =true;
+
+            manifest.canSpendNativeToken = true;
 
         return manifest;
     }
