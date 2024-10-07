@@ -15,14 +15,14 @@ import {IEntryPoint} from "@eth-infinitism/account-abstraction/interfaces/IEntry
 import {EntryPoint} from "@eth-infinitism/account-abstraction/core/EntryPoint.sol";
 import {UserOperation} from "@eth-infinitism/account-abstraction/interfaces/UserOperation.sol";
 
-import {CounterPlugin} from "../src/CounterPlugin.sol";
+import {SubscriptionPlugin} from "../src/SubscriptionPlugin.sol";
 
 contract CounterTest is Test {
     using ECDSA for bytes32;
 
     IEntryPoint entryPoint;
     UpgradeableModularAccount account1;
-    CounterPlugin counterPlugin;
+    SubscriptionPlugin subscriptionPlugin;
     address owner1;
     uint256 owner1Key;
     address payable beneficiary;
@@ -52,8 +52,8 @@ contract CounterTest is Test {
 
         // create our counter plugin and grab the manifest hash so we can install it
         // note: plugins are singleton contracts, so we only need to deploy them once
-        counterPlugin = new CounterPlugin();
-        bytes32 manifestHash = keccak256(abi.encode(counterPlugin.pluginManifest()));
+        subscriptionPlugin = new SubscriptionPlugin();
+        bytes32 manifestHash = keccak256(abi.encode(subscriptionPlugin.pluginManifest()));
 
         // we will have a single function dependency for our counter contract: the single owner user op validation
         // we'll use this to ensure that only an owner can sign a user operation that can successfully increment
@@ -65,7 +65,7 @@ contract CounterTest is Test {
         // install this plugin on the account as the owner
         vm.prank(owner1);
         account1.installPlugin({
-            plugin: address(counterPlugin),
+            plugin: address(subscriptionPlugin),
             manifestHash: manifestHash,
             pluginInstallData: "0x",
             dependencies: dependencies
@@ -73,12 +73,15 @@ contract CounterTest is Test {
     }
 
     function test_Increment() public {
+
+        address service = makeAddr("service");
+
         // create a user operation which has the calldata to specify we'd like to increment
         UserOperation memory userOp = UserOperation({
             sender: address(account1),
             nonce: 0,
             initCode: "",
-            callData: abi.encodeCall(CounterPlugin.increment, ()),
+            callData: abi.encodeCall(subscriptionPlugin.subscribe,(service, 10)),
             callGasLimit: CALL_GAS_LIMIT,
             verificationGasLimit: VERIFICATION_GAS_LIMIT,
             preVerificationGas: 0,
@@ -98,7 +101,10 @@ contract CounterTest is Test {
         userOps[0] = userOp;
         entryPoint.handleOps(userOps, beneficiary);
 
-        // check that we successfully incremented!
-        assertEq(counterPlugin.count(address(account1)), 1);
+        // check that we successfully subscribe!
+
+        (uint amount ,,bool enabled) = subscriptionPlugin.subscriptions(service,address(account1));    
+        assertEq(amount , 10);
+        assertEq(enabled ,true);
     }
 }
