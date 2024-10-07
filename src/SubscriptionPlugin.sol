@@ -78,7 +78,7 @@ contract SubscriptionPlugin is BasePlugin {
         subscription.lastPaid = block.timestamp;
 
         // plugin ca;;s -> smart acc -> collector with 10 native currency ( Plugins dont do delegate calls )
-        IPluginExecutor(subscriber).executeFromPluginExternal(msg.sender, amount, "0x");
+        IPluginExecutor(subscriber).executeFromPluginExternal(msg.sender, amount, "");
     }
 
     // ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓

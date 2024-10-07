@@ -72,7 +72,7 @@ contract CounterTest is Test {
         });
     }
 
-    function test_Increment() public {
+    function test_Subscribe() public {
 
         address service = makeAddr("service");
 
@@ -106,5 +106,39 @@ contract CounterTest is Test {
         (uint amount ,,bool enabled) = subscriptionPlugin.subscriptions(service,address(account1));    
         assertEq(amount , 10);
         assertEq(enabled ,true);
+    }
+
+     function test_Collect() public {
+        address service = makeAddr("service");
+        // create a user operation which has the calldata to specify we'd like to subscribe
+        UserOperation memory userOp = UserOperation({
+            sender: address(account1),
+            nonce: 0,
+            initCode: "",
+            callData: abi.encodeCall(SubscriptionPlugin.subscribe, (service, 10)),
+            callGasLimit: CALL_GAS_LIMIT,
+            verificationGasLimit: VERIFICATION_GAS_LIMIT,
+            preVerificationGas: 0,
+            maxFeePerGas: 2,
+            maxPriorityFeePerGas: 1,
+            paymasterAndData: "",
+            signature: ""
+        });
+
+        // sign this user operation with the owner, otherwise it will revert due to the singleowner validation
+        bytes32 userOpHash = entryPoint.getUserOpHash(userOp);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(owner1Key, userOpHash.toEthSignedMessageHash());
+        userOp.signature = abi.encodePacked(r, s, v);
+
+        // send our single user operation to subscribe
+        UserOperation[] memory userOps = new UserOperation[](1);
+        userOps[0] = userOp;
+        entryPoint.handleOps(userOps, beneficiary);
+
+        // we need to call from the service address
+        vm.prank(service);
+        skip(4 weeks);
+        subscriptionPlugin.collect(address(account1), 10);
+        assertEq(service.balance, 10);
     }
 }
