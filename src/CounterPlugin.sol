@@ -43,6 +43,11 @@ contract CounterPlugin is BasePlugin {
     // ┃    Execution functions    ┃
     // ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
+    // Three ways to call:
+    // 1. usrop( bundler -> entry point -> sca -> plugins)
+    // 2. runtime (sca -? plugin)
+    // 3.. plugin directly
+
     // this is the one thing we are attempting to do with our plugin!
     // we define increment to modify our associated storage, count
     // then in the manifest we define it as an execution function,
@@ -50,11 +55,6 @@ contract CounterPlugin is BasePlugin {
     function increment() external {
         count[msg.sender]++;
     }
-
-    // Three ways to call:
-    // 1. usrop( bundler -> entry point -> sca -> plugins)
-    // 2. runtime (sca -? plugin)
-    // 3.. plugin directly
 
     // ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
     // ┃    Plugin interface functions    ┃

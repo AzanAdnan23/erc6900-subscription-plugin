@@ -72,6 +72,11 @@ function increment() external {
 }
 ```
 
+    Three ways to call:
+      1. Useroperation ( bundler -> entry point -> sca -> plugins)
+      2. Runtime (sca -? plugin)
+      3. Plugin directly
+
 #### 5. **Plugin Lifecycle Hooks**
 
 - **`onInstall()` and `onUninstall()`**: These are lifecycle hooks inherited from `BasePlugin`. They are empty here, meaning no special actions are performed when the plugin is installed or uninstalled.
