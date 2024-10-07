@@ -1,0 +1,19 @@
+# Foundry build and cache directories
+cache/
+out/
+node_modules/
+
+# Ignores development broadcast logs
+!/broadcast
+/broadcast/*/31337/
+/broadcast/**/dry-run/
+
+# Docs
+docs/
+
+# Dotenv file
+.env
+
+# coverage
+report/
+lcov.info
