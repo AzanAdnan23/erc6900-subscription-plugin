@@ -66,7 +66,20 @@ contract SubscriptionPlugin is BasePlugin {
     function subscribe( address service, uint amount ) external {
             
         subscriptions[service][msg.sender]= SubscriptionData(amount,0,true);
-      }
+  }
+
+
+        // this called directly
+    function collect(address subscriber, uint256 amount) external {
+        SubscriptionData storage subscription = subscriptions[msg.sender][subscriber];
+        require(subscription.amount == amount);
+        require(block.timestamp - subscription.lastPaid >= 4 weeks, "less than 4 weeks");
+        require(subscription.enabled);
+        subscription.lastPaid = block.timestamp;
+
+        // plugin ca;;s -> smart acc -> collector with 10 native currency ( Plugins dont do delegate calls )
+        IPluginExecutor(subscriber).executeFromPluginExternal(msg.sender, amount, "0x");
+    }
 
     // ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
     // ┃    Plugin interface functions    ┃
