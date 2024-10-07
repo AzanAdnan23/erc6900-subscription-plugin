@@ -50,26 +50,18 @@ contract SubscriptionPlugin is BasePlugin {
     // ┃    Execution functions    ┃
     // ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-
-
-    // this is the one thing we are attempting to do with our plugin!
-    // we define increment to modify our associated storage, count
-    // then in the manifest we define it as an execution function,
-    // and we specify the validation function for the user op targeting this function
- 
-    // Three ways to call:
+    // Three ways to call execution function:
     // 1. usrop( bundler -> entry point -> sca -> plugins)
-    // 2. runtime (sca -? plugin)
-    // 3.. plugin directly
+    // 2. runtime (sca -> plugin)
+    // 3. plugin directly
  
-    // This is called through user op:
+    // 1. This is called through user op:
     function subscribe( address service, uint amount ) external {
             
         subscriptions[service][msg.sender]= SubscriptionData(amount,0,true);
-  }
+      }
 
-
-        // this called directly
+        // 3. This called directly
     function collect(address subscriber, uint256 amount) external {
         SubscriptionData storage subscription = subscriptions[msg.sender][subscriber];
         require(subscription.amount == amount);
@@ -140,7 +132,6 @@ contract SubscriptionPlugin is BasePlugin {
 
         // Plugin -> smart Account -> external Address ( By default this is not set)
             manifest.permitAnyExternalAddress =true;
-
             manifest.canSpendNativeToken = true;
 
         return manifest;

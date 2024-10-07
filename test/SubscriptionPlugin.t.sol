@@ -17,7 +17,7 @@ import {UserOperation} from "@eth-infinitism/account-abstraction/interfaces/User
 
 import {SubscriptionPlugin} from "../src/SubscriptionPlugin.sol";
 
-contract CounterTest is Test {
+contract SubscriptionPluginTest is Test {
     using ECDSA for bytes32;
 
     IEntryPoint entryPoint;
